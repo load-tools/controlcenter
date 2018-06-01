@@ -1,4 +1,5 @@
-FROM ubuntu:16.04
+FROM ubuntu:xenial
+MAINTAINER Arseniy Fomchenko <fomars@yandex-team.ru>
 
 RUN apt-get update -q && \
     apt-get install -yq \
@@ -6,23 +7,32 @@ RUN apt-get update -q && \
         vim \
         git \
         atop \
-        telnet
+        telnet \
+        expect
 
 RUN mkdir -p /controlcenter
 WORKDIR /controlcenter
 ENV HOME /controlcenter
-ADD api.py api.yaml server.py uwsgi.ini requirements.txt /controlcenter/
 
 RUN pip install --upgrade setuptools && \
     pip install --upgrade pip && \
     #https://github.com/pypa/pip/issues/5221
     hash -r pip && \
     pip install uwsgi && \
-    pip install git+https://github.com/yandex/yandex-tank.git@release#egg=yandextank && \
-    pip install -r requirements.txt
+    pip install git+https://github.com/yandex/yandex-tank.git@release#egg=yandextank
 
-RUN git clone https://github.yandex-team.ru/load/yandex-tank-internal-pkg.git
-RUN mkdir -p /etc/yandex-tank
-RUN cp yandex-tank-internal-pkg/etc/yandex-tank/50-lunapark.yaml /etc/yandex-tank/50-lunapark.yaml
+RUN git clone https://github.yandex-team.ru/load/yandex-tank-internal-pkg.git && \
+    mkdir -p /etc/yandex-tank && \
+    cp yandex-tank-internal-pkg/etc/yandex-tank/50-lunapark.yaml /etc/yandex-tank/50-lunapark.yaml
+
+ARG APP_SETTINGS=app_settings.ini
+ENV APPLICATION_SETTINGS $APP_SETTINGS
+
+COPY api.py api.yaml server.py uwsgi.ini requirements.txt $APP_SETTINGS /controlcenter/
+RUN pip install -r requirements.txt
+
+COPY docker_entrypoint.sh /usr/local/bin/
+RUN chmod 777 -R /usr/local/bin/docker_entrypoint.sh
+
+ENTRYPOINT ["docker_entrypoint.sh"]
 EXPOSE 80
-CMD uwsgi --ini uwsgi.ini

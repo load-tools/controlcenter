@@ -1,3 +1,3 @@
 from server import application
 
-application.run(port=8081)
+application.run(port=8081, debug=True)

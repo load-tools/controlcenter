@@ -1,3 +1,4 @@
+import logging
 import yaml
 from StringIO import StringIO
 
@@ -8,19 +9,11 @@ from yandextank.core.consoleworker import load_core_base_cfg, load_local_base_cf
 from yandextank.validator.validator import TankConfig
 
 
-def log_exception(e):
-
-    """
-
-    :param e: Exception info
-    :type e: Exception
-    """
-    pass
+def response(full_cfg, errors):
+    return {'config': full_cfg, 'errors': errors}
 
 
 def validate_config(config, fmt):
-    def response(full_cfg, errors):
-        return {'config': full_cfg, 'errors': errors}
 
     if fmt == 'ini':
         stream = StringIO(str(config.read()))
@@ -33,8 +26,8 @@ def validate_config(config, fmt):
             return response(tank_config.raw_config_dict, tank_config.errors())
         except ConversionError as e:
             return response({}, [e.message])
-        except Exception as e:
-            log_exception(e)
+        except Exception:
+            logging.error('Exception during reading Tank config', exc_info=True)
             raise BadRequest()
     else:
         try:
@@ -44,10 +37,17 @@ def validate_config(config, fmt):
                                      load_local_base_cfgs() +
                                      [cfg])
             return response(tank_config.raw_config_dict, tank_config.errors())
-        except Exception as e:
-            log_exception(e)
-            return BadRequest
+        except Exception:
+            logging.error('Exception during reading Tank config', exc_info=True)
+            raise BadRequest()
 
 
-def choose_tank(location, requirements):
-    return
+def validate_config_json(config):
+    try:
+        tank_config = TankConfig([load_core_base_cfg()] +
+                                 load_local_base_cfgs() +
+                                 [config])
+        return response(tank_config.raw_config_dict, tank_config.errors())
+    except Exception:
+        logging.error('Exception during reading Tank config', exc_info=True)
+        raise BadRequest()
