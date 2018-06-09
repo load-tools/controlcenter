@@ -14,12 +14,14 @@ RUN mkdir -p /controlcenter
 WORKDIR /controlcenter
 ENV HOME /controlcenter
 
+ARG TANK_BRANCH=release
+
 RUN pip install --upgrade setuptools && \
     pip install --upgrade pip && \
     #https://github.com/pypa/pip/issues/5221
     hash -r pip && \
     pip install uwsgi && \
-    pip install git+https://github.com/yandex/yandex-tank.git@release#egg=yandextank
+    pip install git+https://github.com/yandex/yandex-tank.git@${TANK_BRANCH}#egg=yandextank
 
 RUN git clone https://github.yandex-team.ru/load/yandex-tank-internal-pkg.git && \
     mkdir -p /etc/yandex-tank && \
