@@ -21,7 +21,8 @@ RUN pip install --upgrade setuptools && \
     #https://github.com/pypa/pip/issues/5221
     hash -r pip && \
     pip install uwsgi && \
-    pip install git+https://github.com/yandex/yandex-tank.git@${TANK_BRANCH}#egg=yandextank
+    pip install git+https://github.com/yandex/yandex-tank.git@${TANK_BRANCH}#egg=yandextank && \
+    pip install -i https://pypi.yandex-team.ru/simple/ yasmapi
 
 RUN git clone https://github.yandex-team.ru/load/yandex-tank-internal-pkg.git && \
     mkdir -p /etc/yandex-tank && \
