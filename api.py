@@ -37,9 +37,9 @@ def validate_config(config, fmt):
                                      load_local_base_cfgs() +
                                      [cfg])
             return response(tank_config.raw_config_dict, tank_config.errors())
-        except Exception:
+        except Exception as e:
             logging.error('Exception during reading Tank config', exc_info=True)
-            raise BadRequest()
+            raise BadRequest('{}'.format(e))
 
 
 def validate_config_json(config):
