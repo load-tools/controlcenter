@@ -13,30 +13,29 @@ def response(full_cfg, errors):
     return {'config': full_cfg, 'errors': errors}
 
 
+def get_validation_result(cfg):
+    config, errors, configinitial = TankConfig([load_core_base_cfg()] +
+                                               load_local_base_cfgs() +
+                                               [cfg],
+                                               with_dynamic_options=False).validate()
+    return response(configinitial, errors)
+
+
 def validate_config(config, fmt):
 
     if fmt == 'ini':
         stream = StringIO(str(config.read()))
         config.close()
         try:
-            cfg = convert_ini(stream)
-            tank_config = TankConfig([load_core_base_cfg()] +
-                                     load_local_base_cfgs() +
-                                     [cfg])
-            return response(tank_config.raw_config_dict, tank_config.errors())
+            return get_validation_result(convert_ini(stream))
         except ConversionError as e:
             return response({}, [e.message])
-        except Exception:
+        except Exception as e:
             logging.error('Exception during reading Tank config', exc_info=True)
-            raise BadRequest()
+            raise BadRequest('{}'.format(e))
     else:
         try:
-            cfg = yaml.load(config)
-            config.close()
-            tank_config = TankConfig([load_core_base_cfg()] +
-                                     load_local_base_cfgs() +
-                                     [cfg])
-            return response(tank_config.raw_config_dict, tank_config.errors())
+            return get_validation_result(yaml.load(config))
         except Exception as e:
             logging.error('Exception during reading Tank config', exc_info=True)
             raise BadRequest('{}'.format(e))
@@ -44,10 +43,7 @@ def validate_config(config, fmt):
 
 def validate_config_json(config):
     try:
-        tank_config = TankConfig([load_core_base_cfg()] +
-                                 load_local_base_cfgs() +
-                                 [config])
-        return response(tank_config.raw_config_dict, tank_config.errors())
-    except Exception:
+        return get_validation_result(config)
+    except Exception as e:
         logging.error('Exception during reading Tank config', exc_info=True)
-        raise BadRequest()
+        raise BadRequest('{}'.format(e))
