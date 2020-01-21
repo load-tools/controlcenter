@@ -19,7 +19,7 @@ RUN mkdir -p /controlcenter
 WORKDIR /controlcenter
 ENV HOME /controlcenter
 
-RUN pip install --upgrade setuptools && \
+RUN pip install --upgrade setuptools==44.0.0 && \
     pip install --upgrade pip && \
     #https://github.com/pypa/pip/issues/5221
     hash -r pip && \
